@@ -3,6 +3,8 @@ project(ros_vrpn_client)
 
 add_definitions(-std=c++11)
 
+find_package(vrpn_catkin REQUIRED)
+
 find_package(catkin_simple REQUIRED)
 catkin_simple(ALL_DEPS_REQUIRED)
 
