@@ -2,7 +2,7 @@
 
 <launch>
   <arg name="object_name" default="geranos" />
-  <arg name="vrpn_server_ip" default="vicon" />
+  <arg name="vrpn_server_ip" default="10.10.10.5" />
   <node ns="$(arg object_name)" name="vrpn_client" type="ros_vrpn_client" pkg="ros_vrpn_client" output="screen">
     <param name="vrpn_server_ip" value="$(arg vrpn_server_ip)" />
     <param name="vrpn_coordinate_system" value="vicon" />
