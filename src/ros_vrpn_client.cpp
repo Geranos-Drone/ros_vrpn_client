@@ -51,6 +51,7 @@
 #include <eigen_conversions/eigen_msg.h>
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/TransformStamped.h>
+#include <geometry_msgs/PointStamped.h>
 #include <tf/transform_broadcaster.h>
 #include <glog/logging.h>
 
@@ -73,6 +74,7 @@ void VRPN_CALLBACK track_target(void*, const vrpn_TRACKERCB tracker);
 struct TargetState {
   geometry_msgs::TransformStamped measured_transform;
   geometry_msgs::TransformStamped estimated_transform;
+  geometry_msgs::PointStamped estimated_position;
   nav_msgs::Odometry estimated_odometry;
 };
 
@@ -110,6 +112,9 @@ class Rigid_Body {
         nh.advertise<geometry_msgs::TransformStamped>("estimated_transform", 1);
     estimated_target_odometry_pub_ =
         nh.advertise<nav_msgs::Odometry>("estimated_odometry", 1);
+    estimated_target_position_pub_ =
+        nh.advertise<geometry_msgs::PointStamped>("estimated_position", 1);
+
     // Connecting to the vprn device and creating an associated tracker.
     std::stringstream connection_name;
     connection_name << server_ip << ":" << port;
@@ -137,6 +142,10 @@ class Rigid_Body {
   void publish_estimated_transform(TargetState* target_state) {
     br.sendTransform(target_state->estimated_transform);
     estimated_target_transform_pub_.publish(target_state->estimated_transform);
+  }
+
+  void publish_estimated_position(TargetState* target_state) {
+    estimated_target_position_pub_.publish(target_state->estimated_position);
   }
 
   // Publishes the estimated target state to the odometry message.
@@ -334,6 +343,12 @@ void VRPN_CALLBACK track_target(void*, const vrpn_TRACKERCB tracker) {
       orientation_estimate_B_W,
       target_state->estimated_transform.transform.rotation);
 
+  // Populate the estimated position message. Published in main loop.
+  target_state->estimated_position.header.stamp = timestamp;
+  target_state->estimated_position.header.frame_id = coordinate_system_string;
+  tf::pointEigenToMsg(position_estimate_W, target_state->estimated_position.point);
+
+
   // Populate the estimated odometry message. Published in main loop.
   target_state->estimated_odometry.header.stamp = timestamp;
   target_state->estimated_odometry.header.frame_id = coordinate_system_string;
@@ -425,6 +440,7 @@ int main(int argc, char* argv[]) {
       tool.publish_measured_transform(target_state);
       tool.publish_estimated_transform(target_state);
       tool.publish_estimated_odometry(target_state);
+      tool.publish_estimated_position(target_state);
       fresh_data = false;
     }
     loop_rate.sleep();
