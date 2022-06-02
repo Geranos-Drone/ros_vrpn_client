@@ -110,6 +110,7 @@ class ViconDataListener {
     estimated_position.header = msg ->header;
     tf::pointEigenToMsg(position_estimate_W,
                         estimated_position.point);
+    estimated_position_pub_.publish(estimated_position);
 
     // Publishing the estimates
     estimated_transform_pub_.publish(estimated_transform);
