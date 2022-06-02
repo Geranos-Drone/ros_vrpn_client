@@ -164,6 +164,7 @@ class Rigid_Body {
   ros::Publisher measured_target_transform_pub_;
   ros::Publisher estimated_target_transform_pub_;
   ros::Publisher estimated_target_odometry_pub_;
+  ros::Publisher estimated_target_position_pub_;
   tf::TransformBroadcaster br;
   // Vprn object pointers
   vrpn_Connection* connection;
