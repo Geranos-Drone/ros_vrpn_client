@@ -29,6 +29,7 @@
 
 #include <ros/ros.h>
 #include <geometry_msgs/TransformStamped.h>
+#include <geometry_msgs/PointStamped.h>
 #include <nav_msgs/Odometry.h>
 #include <Eigen/Geometry>
 #include <eigen_conversions/eigen_msg.h>
@@ -53,6 +54,8 @@ class ViconDataListener {
             "estimated_transform", 10);
     estimated_odometry_pub_ =
         nh_private.advertise<nav_msgs::Odometry>("estimated_odometry", 10);
+    estimated_position_pub_ =
+        nh_private.advertise<geometry_msgs::PointStamped>("estimated_position", 10);
     // Getting the object name
     nh_private.param<std::string>("object_name", object_name_, "auk");
   }
@@ -101,11 +104,20 @@ class ViconDataListener {
                          estimated_odometry.twist.twist.linear);
     tf::vectorEigenToMsg(rate_estimate_B,
                          estimated_odometry.twist.twist.angular);
+
+    //adition for publishing position:
+    geometry_msgs::PointStamped estimated_position;
+    estimated_position.header = msg ->header;
+    tf::pointEigenToMsg(position_estimate_W,
+                        estimated_position.point);
+
     // Publishing the estimates
     estimated_transform_pub_.publish(estimated_transform);
     estimated_odometry_pub_.publish(estimated_odometry);
     // Publishing the estimator intermediate results
     vicon_odometry_estimator_->publishIntermediateResults(msg->header.stamp);
+
+
   }
 
  private:
@@ -114,6 +126,7 @@ class ViconDataListener {
   // Estimate publishers
   ros::Publisher estimated_transform_pub_;
   ros::Publisher estimated_odometry_pub_;
+  ros::Publisher estimated_position_pub_;
   // Name of the tracked object
   std::string object_name_;
   // Vicon-based estimator
